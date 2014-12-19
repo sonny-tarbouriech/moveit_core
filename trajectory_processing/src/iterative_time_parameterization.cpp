@@ -282,8 +282,10 @@ void updateTrajectory(robot_trajectory::RobotTrajectory& rob_trajectory,
         v2 = start_velocity ? v1 : (q3-q2)/dt2; // Needed to ensure continuous velocity for first point
         a = 2.0*(v2-v1)/(dt1+dt2);
       }
-      
-      curr_waypoint->setVariableVelocity(idx[j], (v2+v1)/2.0);
+      if(i == 0 || i == num_points-1)
+	curr_waypoint->setVariableVelocity(idx[j], (v1+v2)/2.0);
+      else
+	curr_waypoint->setVariableVelocity(idx[j], v1+a*dt1/2.0);
       curr_waypoint->setVariableAcceleration(idx[j], a);
     }
   }
