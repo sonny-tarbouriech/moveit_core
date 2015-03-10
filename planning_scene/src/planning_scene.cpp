@@ -36,7 +36,11 @@
 
 #include <boost/algorithm/string.hpp>
 #include <moveit/planning_scene/planning_scene.h>
+
+//STa
 #include <moveit/collision_detection_fcl/collision_detector_allocator_fcl.h>
+//#include <moveit/collision_detection_fcl/safe_collision_detector_allocator_fcl.h>
+
 #include <geometric_shapes/shape_operations.h>
 #include <moveit/collision_detection/collision_tools.h>
 #include <moveit/trajectory_processing/trajectory_tools.h>
