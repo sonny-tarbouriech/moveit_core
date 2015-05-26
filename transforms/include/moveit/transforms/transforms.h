@@ -181,7 +181,7 @@ public:
 
   /**
    * @brief Check whether a frame stays constant as the state of the robot model changes.
-   * This is true for any transform mainatined by this object.
+   * This is true for any transform maintained by this object.
    */
   virtual bool isFixedFrame(const std::string &frame) const;
 

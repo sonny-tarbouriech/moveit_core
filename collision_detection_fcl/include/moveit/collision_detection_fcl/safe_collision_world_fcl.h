@@ -31,6 +31,7 @@ namespace collision_detection
 
     //STa
     std::vector<fcl::CollisionObject*> getCollisionObjects() const;
+    std::vector<std::string> getCollisionObjectNames() const;
     void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm, std::vector<std::string> current_link_names, std::size_t object_index) const;
     double distanceRobot(const CollisionRobot* robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm, std::vector<std::string> current_link_names, std::size_t object_index) const;
     double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm, std::string group_name) const;

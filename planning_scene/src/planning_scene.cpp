@@ -2056,6 +2056,7 @@ bool planning_scene::PlanningScene::isPathValid(const robot_trajectory::RobotTra
       }
     }
   }
+
   return result;
 }
 

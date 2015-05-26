@@ -424,6 +424,7 @@ kinematic_constraints::ConstraintEvaluationResult finishPositionConstraintDecisi
   double dx = desired.x() - pt.x();
   double dy = desired.y() - pt.y();
   double dz = desired.z() - pt.z();
+
   if (verbose)
   {
     logInform("Position constraint %s on link '%s'. Desired: %f, %f, %f, current: %f, %f, %f",
@@ -447,9 +448,13 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Positio
       Eigen::Affine3d tmp = state.getFrameTransform(constraint_frame_id_) * constraint_region_pose_[i];
       bool result = constraint_region_[i]->cloneAt(tmp)->containsPoint(pt, verbose);
       if (result || (i + 1 == constraint_region_pose_.size()))
+      {
         return finishPositionConstraintDecision(pt, tmp.translation(), link_model_->getName(), constraint_weight_, result, verbose);
+      }
       else
+      {
         finishPositionConstraintDecision(pt, tmp.translation(), link_model_->getName(), constraint_weight_, result, verbose);
+      }
     }
   }
   else
@@ -458,9 +463,13 @@ kinematic_constraints::ConstraintEvaluationResult kinematic_constraints::Positio
     {
       bool result = constraint_region_[i]->containsPoint(pt, true);
       if (result || (i + 1 == constraint_region_.size()))
+      {
         return finishPositionConstraintDecision(pt, constraint_region_[i]->getPose().translation(), link_model_->getName(), constraint_weight_, result, verbose);
+      }
       else
+      {
         finishPositionConstraintDecision(pt, constraint_region_[i]->getPose().translation(), link_model_->getName(), constraint_weight_, result, verbose);
+      }
     }
   }
   return ConstraintEvaluationResult(false, 0.0);

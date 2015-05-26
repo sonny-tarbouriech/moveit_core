@@ -108,26 +108,21 @@ double collision_detection::SafeCollisionWorldFCL::distanceRobot(const Collision
 
 //	ros::WallTime flag3 = ros::WallTime::now();
 
-	std::vector<fcl::CollisionObject*> fcl_collision_obj;
-	manager_->getObjects(fcl_collision_obj);
+
+	link_manager.manager_->distance(getCollisionObjects()[object_index], &cd, &distanceCallback);
 
 //	ros::WallTime flag4 = ros::WallTime::now();
 
-	link_manager.manager_->distance(fcl_collision_obj[object_index], &cd, &distanceCallback);
-
-//	ros::WallTime flag5 = ros::WallTime::now();
-
 //	//STa test temp
 //	std::string homepath = getenv("HOME");
-//	std::ofstream output_file_((homepath + "/time2.txt").c_str(), std::ios::out | std::ios::app);
+//	std::ofstream output_file_((homepath + "/time.txt").c_str(), std::ios::out | std::ios::app);
 //	if (output_file_)
 //	{
 //		output_file_
 //		<< "flag1 " << flag1 - start <<  "\n"
 //		<< "flag2 " << flag2 - start <<  "\n"
 //		<< "flag3 " << flag3 - start <<  "\n"
-//		<< "flag4 " << flag4 - start <<  "\n"
-//		<< "flag5 " << flag5 - start <<  "\n \n";
+//		<< "flag4 " << flag4 - start <<  "\n \n";
 //		output_file_.close();
 //	}
 
@@ -176,8 +171,27 @@ double collision_detection::SafeCollisionWorldFCL::distanceRobotHelper(const Col
 std::vector<fcl::CollisionObject*> collision_detection::SafeCollisionWorldFCL::getCollisionObjects() const
 {
 	std::vector<fcl::CollisionObject*> fcl_collision_obj;
-	manager_->getObjects(fcl_collision_obj);
+	std::vector<std::string> co_names = getCollisionObjectNames();
+	for (size_t i=0; i < co_names.size(); ++i)
+	{
+		for (size_t j=0; j < fcl_objs_.find(co_names[i])->second.collision_objects_.size(); ++j)
+			fcl_collision_obj.push_back(fcl_objs_.find(co_names[i])->second.collision_objects_[j].get());
+	}
+
 	return fcl_collision_obj;
+}
+
+std::vector<std::string> collision_detection::SafeCollisionWorldFCL::getCollisionObjectNames() const
+{
+
+	std::vector<std::string> s;
+	for(std::map<std::string, FCLObject >::const_iterator it = fcl_objs_.begin(); it != fcl_objs_.end(); ++it)
+	{
+		for (size_t i=0; i < it->second.collision_objects_.size(); ++i)
+			s.push_back(it->first);
+
+	}
+	return s;
 }
 
 double collision_detection::SafeCollisionWorldFCL::distanceWorld(const CollisionWorld &world) const

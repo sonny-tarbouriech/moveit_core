@@ -401,7 +401,6 @@ void moveit::core::robotStateToJointStateMsg(const RobotState& state, sensor_msg
     if (state.hasVelocities())
       joint_state.velocity.push_back(state.getVariableVelocity(js[i]->getFirstVariableIndex()));
   }
-  
   // if inconsistent number of velocities are specified, discard them
   if (joint_state.velocity.size() != joint_state.position.size())
     joint_state.velocity.clear();

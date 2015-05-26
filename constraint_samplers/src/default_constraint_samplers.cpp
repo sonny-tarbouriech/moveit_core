@@ -477,9 +477,13 @@ void samplingIkCallbackFnAdapter(robot_state::RobotState *state, const robot_mod
   for (std::size_t i = 0 ; i < bij.size() ; ++i)
     solution[i] = ik_sol[bij[i]];
   if (constraint(state, jmg, &solution[0]))
+  {
     error_code.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
+  }
   else
+  {
     error_code.val = moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION;
+  }
 }
 }
 }
@@ -575,6 +579,9 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
   }
   else
   {
+	  //STa temp
+	  std::cout << "searchPositionIK FAILED \n";
+
     if (error.val != moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION &&
     error.val != moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE &&
         error.val != moveit_msgs::MoveItErrorCodes::TIMED_OUT)
