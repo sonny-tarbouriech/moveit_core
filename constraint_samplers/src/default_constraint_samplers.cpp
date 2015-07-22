@@ -40,6 +40,9 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 
+//STa temp
+#include <fstream>
+
 bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::Constraints &constr)
 {
   // construct the constraints
@@ -527,7 +530,9 @@ bool constraint_samplers::IKConstraintSampler::sampleHelper(robot_state::RobotSt
     ik_query.orientation.w = quat.w();
 
     if (callIK(ik_query, adapted_ik_validity_callback, ik_timeout_, state, project && a == 0))
+    {
       return true;
+    }
   }
   return false;
 }
@@ -552,9 +557,10 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
   std::vector<double> seed(ik_joint_bijection.size(), 0.0);
   std::vector<double> vals;
   
-  if (use_as_seed)
-    state.copyJointGroupPositions(jmg_, vals);
-  else
+  //STa
+//  if (use_as_seed)
+//    state.copyJointGroupPositions(jmg_, vals);
+//  else
     // sample a seed value
     jmg_->getVariableRandomPositions(random_number_generator_, vals);
 
@@ -575,13 +581,25 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
       solution[ik_joint_bijection[i]] = ik_sol[i];
     state.setJointGroupPositions(jmg_, solution);
 
+//    //STa temp
+//    std::string homepath = getenv("HOME");
+//    std::ofstream output_file((homepath + "/default_constraint_sampler.txt").c_str(), std::ios::out | std::ios::app);
+//    output_file << "solution : ";
+//    for (std::size_t i = 0 ; i < solution.size(); ++i)
+//      	output_file << solution[i] << "  ";
+//    output_file << "\n";
+//    output_file << "use_as_seed : " << use_as_seed << "\n";
+//    output_file << "seed : ";
+//    for (std::size_t i = 0 ; i < seed.size(); ++i)
+//      	output_file << seed[i] << "  ";
+//    output_file << "\n \n";
+//    output_file.close();
+
+
     return validate(state);
   }
   else
   {
-	  //STa temp
-	  std::cout << "searchPositionIK FAILED \n";
-
     if (error.val != moveit_msgs::MoveItErrorCodes::NO_IK_SOLUTION &&
     error.val != moveit_msgs::MoveItErrorCodes::INVALID_ROBOT_STATE &&
         error.val != moveit_msgs::MoveItErrorCodes::TIMED_OUT)
