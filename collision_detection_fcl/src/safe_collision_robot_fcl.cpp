@@ -35,6 +35,10 @@
 
 #include <moveit/collision_detection_fcl/safe_collision_robot_fcl.h>
 
+//STa test
+#include <geometric_shapes/shape_operations.h>
+
+
 collision_detection::SafeCollisionRobotFCL::SafeCollisionRobotFCL(const robot_model::RobotModelConstPtr &model, double padding, double scale)
   : CollisionRobotFCL(model, padding, scale)
 {
@@ -46,19 +50,33 @@ collision_detection::SafeCollisionRobotFCL::SafeCollisionRobotFCL(const robot_mo
 
   // we keep the same order of objects as what RobotState *::getLinkState() returns
   for (std::size_t i = 0 ; i < links.size() ; ++i)
-    for (std::size_t j = 0 ; j < links[i]->getShapes().size() ; ++j)
-    {
-      FCLGeometryConstPtr g = createCollisionGeometry(links[i]->getShapes()[j], getLinkScale(links[i]->getName()), getLinkPadding(links[i]->getName()), links[i], j);
-      if (g)
+      for (std::size_t j = 0 ; j < links[i]->getShapes().size() ; ++j)
       {
-        geoms_[links[i]->getFirstCollisionBodyTransformIndex() + j] = g;
+          FCLGeometryConstPtr g;
+          if (links[i]->getShapes()[j]->type != shapes::MESH)
+          {
+              const shapes::Cylinder* cyl = static_cast<const shapes::Cylinder*>(links[i]->getShapes()[j].get());
 
-        //STa
-        link_names_[links[i]->getFirstCollisionBodyTransformIndex() + j] = links[i]->getName();
+              shapes::Mesh* mesh = createMeshFromShape(links[i]->getShapes()[j].get());
+              shapes::ShapeConstPtr shape_cptr(mesh);
+              g = createCollisionGeometry(shape_cptr, getLinkScale(links[i]->getName()), getLinkPadding(links[i]->getName()), links[i], j);
+          }
+          else
+              g = createCollisionGeometry(links[i]->getShapes()[j], getLinkScale(links[i]->getName()), getLinkPadding(links[i]->getName()), links[i], j);
+
+
+          //      FCLGeometryConstPtr g = createCollisionGeometry(links[i]->getShapes()[j], getLinkScale(links[i]->getName()), getLinkPadding(links[i]->getName()), links[i], j);
+          if (g)
+          {
+              geoms_[links[i]->getFirstCollisionBodyTransformIndex() + j] = g;
+
+              //STa
+              link_names_[links[i]->getFirstCollisionBodyTransformIndex() + j] = links[i]->getName();
+          }
+          else
+              logError("Unable to construct collision geometry for link '%s'", links[i]->getName().c_str());
+
       }
-      else
-        logError("Unable to construct collision geometry for link '%s'", links[i]->getName().c_str());
-    }
 }
 
 collision_detection::SafeCollisionRobotFCL::SafeCollisionRobotFCL(const CollisionRobotFCL &other) : CollisionRobotFCL(other)

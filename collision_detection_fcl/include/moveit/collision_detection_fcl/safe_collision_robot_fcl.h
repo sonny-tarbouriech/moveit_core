@@ -48,6 +48,7 @@ namespace collision_detection
 
   public:
 
+    //STa : Construct a collision model by converting basic shapes into meshes. This enable the computation of nearest points in FCL
     SafeCollisionRobotFCL(const robot_model::RobotModelConstPtr &kmodel, double padding = 0.0, double scale = 1.0);
 
     SafeCollisionRobotFCL(const CollisionRobotFCL &other);

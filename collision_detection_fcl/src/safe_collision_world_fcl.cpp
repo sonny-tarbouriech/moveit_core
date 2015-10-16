@@ -87,6 +87,9 @@ void collision_detection::SafeCollisionWorldFCL::checkWorldCollision(const Colli
 double collision_detection::SafeCollisionWorldFCL::distanceRobot(const CollisionRobot* robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm,
 		std::vector<std::string> current_link_names, std::size_t object_index) const
 {
+//    //STa test temp
+//    std::string homepath = getenv("HOME");
+//    std::ofstream output_file_((homepath + "/distanceRobot.txt").c_str(), std::ios::out | std::ios::app);
 //	ros::WallTime start = ros::WallTime::now();
 
 	FCLManager link_manager;
@@ -113,9 +116,7 @@ double collision_detection::SafeCollisionWorldFCL::distanceRobot(const Collision
 
 //	ros::WallTime flag4 = ros::WallTime::now();
 
-//	//STa test temp
-//	std::string homepath = getenv("HOME");
-//	std::ofstream output_file_((homepath + "/time.txt").c_str(), std::ios::out | std::ios::app);
+
 //	if (output_file_)
 //	{
 //		output_file_
@@ -127,6 +128,33 @@ double collision_detection::SafeCollisionWorldFCL::distanceRobot(const Collision
 //	}
 
 	return res.distance;
+}
+
+double collision_detection::SafeCollisionWorldFCL::distanceRobot(const CollisionRobot* robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm,
+        std::vector<std::string> current_link_names, std::size_t object_index, fcl::DistanceResult& result) const
+{
+    FCLManager link_manager;
+    allocCollisionBroadPhase(link_manager);
+
+    const SafeCollisionRobotFCL* safe_robot_fcl = static_cast<const SafeCollisionRobotFCL*>(robot);
+
+    safe_robot_fcl->constructFCLObject(state, link_manager.object_, current_link_names);
+    link_manager.object_.registerTo(link_manager.manager_.get());
+
+    result.min_distance = std::numeric_limits<double>::infinity();
+    fcl::DistanceResult result_temp;
+    for (size_t i=0; i < link_manager.object_.collision_objects_.size(); ++i)
+    {
+        result_temp.clear();
+        fcl::DistanceRequest request;
+        request.enable_nearest_points = true;
+        fcl::distance(getCollisionObjects()[object_index], link_manager.object_.collision_objects_[i].get(), request, result_temp);
+
+        if (result_temp.min_distance < result.min_distance)
+            result = result_temp;
+    }
+
+    return result.min_distance;
 }
 
 double collision_detection::SafeCollisionWorldFCL::distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state) const
