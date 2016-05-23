@@ -40,9 +40,6 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 
-//STa temp
-#include <fstream>
-
 bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::Constraints &constr)
 {
   // construct the constraints
@@ -91,7 +88,7 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
       ji.index_ = jmg_->getVariableGroupIndex(jc[i].getJointVariableName());
     ji.potentiallyAdjustMinMaxBounds(std::max(joint_bounds.min_position_, jc[i].getDesiredJointPosition() - jc[i].getJointToleranceBelow()),
                                      std::min(joint_bounds.max_position_, jc[i].getDesiredJointPosition() + jc[i].getJointToleranceAbove()));
-    
+
 
     logDebug("Bounds for %s JointConstraint are %g %g", jc[i].getJointVariableName().c_str(), ji.min_bound_, ji.max_bound_);
 
@@ -117,7 +114,7 @@ bool constraint_samplers::JointConstraintSampler::configure(const std::vector<ki
   // get a separate list of joints that are not bounded; we will sample these randomly
   const std::vector<const robot_model::JointModel*> &joints = jmg_->getJointModels();
   for (std::size_t i = 0 ; i < joints.size() ; ++i)
-    if (bound_data.find(joints[i]->getName()) == bound_data.end() && joints[i]->getVariableCount() > 0 && 
+    if (bound_data.find(joints[i]->getName()) == bound_data.end() && joints[i]->getVariableCount() > 0 &&
         joints[i]->getMimic() == NULL)
     {
       // check if all the vars of the joint are found in bound_data instead
@@ -162,7 +159,7 @@ bool constraint_samplers::JointConstraintSampler::sample(robot_state::RobotState
     for (std::size_t j = 0 ; j < v.size() ; ++j)
       values_[uindex_[i] + j] = v[j];
   }
-  
+
   // enforce the constraints for the constrained components (could be all of them)
   for (std::size_t i = 0 ; i < bounds_.size() ; ++i)
     values_[bounds_[i].index_] = random_number_generator_.uniformReal(bounds_[i].min_bound_, bounds_[i].max_bound_);
@@ -333,7 +330,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
       logError("The IK solver expects requests in frame '%s' but this frame is not known to the sampler. Ignoring transformation (IK may fail)", ik_frame_.c_str());
       transform_ik_ = false;
     }
-  
+
   // check if IK is performed for the desired link
   bool wrong_link = false;
   if (sampling_pose_.position_constraint_)
@@ -352,7 +349,7 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
         }
     }
   }
-  
+
   if (!wrong_link && sampling_pose_.orientation_constraint_)
   {
     const moveit::core::LinkModel *lm = sampling_pose_.orientation_constraint_->getLinkModel();
@@ -366,10 +363,10 @@ bool constraint_samplers::IKConstraintSampler::loadIKSolver()
           sampling_pose_.orientation_constraint_->swapLinkModel(jmg_->getParentModel().getLinkModel(it->first->getName()), it->second.rotation());
           wrong_link = false;
           break;
-        }      
+        }
     }
   }
-  
+
   if (wrong_link)
   {
     logError("IK cannot be performed for link '%s'. The solver can report IK solutions for link '%s'.",
@@ -557,10 +554,11 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
   std::vector<double> seed(ik_joint_bijection.size(), 0.0);
   std::vector<double> vals;
   
-  //STa
+  //STa : When uncommented, the same valid seed will be used -> always the same configuration 
 //  if (use_as_seed)
 //    state.copyJointGroupPositions(jmg_, vals);
 //  else
+
     // sample a seed value
     jmg_->getVariableRandomPositions(random_number_generator_, vals);
 
@@ -580,21 +578,6 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
     for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
       solution[ik_joint_bijection[i]] = ik_sol[i];
     state.setJointGroupPositions(jmg_, solution);
-
-//    //STa temp
-//    std::string homepath = getenv("HOME");
-//    std::ofstream output_file((homepath + "/default_constraint_sampler.txt").c_str(), std::ios::out | std::ios::app);
-//    output_file << "solution : ";
-//    for (std::size_t i = 0 ; i < solution.size(); ++i)
-//      	output_file << solution[i] << "  ";
-//    output_file << "\n";
-//    output_file << "use_as_seed : " << use_as_seed << "\n";
-//    output_file << "seed : ";
-//    for (std::size_t i = 0 ; i < seed.size(); ++i)
-//      	output_file << seed[i] << "  ";
-//    output_file << "\n \n";
-//    output_file.close();
-
 
     return validate(state);
   }
