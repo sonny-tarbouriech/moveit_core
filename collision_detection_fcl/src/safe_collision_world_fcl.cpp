@@ -84,6 +84,30 @@ void collision_detection::SafeCollisionWorldFCL::checkWorldCollision(const Colli
   checkWorldCollisionHelper(req, res, other_world, &acm);
 }
 
+void collision_detection::SafeCollisionWorldFCL::generateBoxesFromOctomap(std::vector<fcl::CollisionObject*>& boxes, const fcl::OcTree* tree) const
+{
+  std::vector<boost::array<fcl::FCL_REAL, 6> > boxes_ = tree->toBoxes();
+
+  for(std::size_t i = 0; i < boxes_.size(); ++i)
+  {
+	  fcl::FCL_REAL x = boxes_[i][0];
+	  fcl::FCL_REAL y = boxes_[i][1];
+	  fcl::FCL_REAL z = boxes_[i][2];
+	  fcl::FCL_REAL size = boxes_[i][3];
+	  fcl::FCL_REAL cost = boxes_[i][4];
+	  fcl::FCL_REAL threshold = boxes_[i][5];
+
+	  fcl::Box* box = new fcl::Box(size, size, size);
+    box->cost_density = cost;
+    box->threshold_occupied = threshold;
+    fcl::CollisionObject* obj = new fcl::CollisionObject(boost::shared_ptr<fcl::CollisionGeometry>(box), fcl::Transform3f(fcl::Vec3f(x, y, z)));
+    boxes.push_back(obj);
+  }
+
+  std::cout << "boxes size: " << boxes.size() << std::endl;
+
+}
+
 double collision_detection::SafeCollisionWorldFCL::distanceRobot(const CollisionRobot* robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm,
 		std::vector<std::string> current_link_names, std::size_t object_index) const
 {
@@ -111,8 +135,21 @@ double collision_detection::SafeCollisionWorldFCL::distanceRobot(const Collision
 
 //	ros::WallTime flag3 = ros::WallTime::now();
 
+	boost::shared_ptr<fcl::CollisionObject> co = getCollisionObjects()[object_index];
 
-	link_manager.manager_->distance(getCollisionObjects()[object_index], &cd, &distanceCallback);
+	if (co->getObjectType() == 3)
+	{
+		std::vector<fcl::CollisionObject*> boxes;
+		const fcl::OcTree* tree = static_cast<const fcl::OcTree*>(co->collisionGeometry().get());
+		generateBoxesFromOctomap(boxes, tree);
+		for(std::size_t i = 0; !cd.done_ && i < boxes.size(); ++i)
+		{
+			  link_manager.manager_->distance(boxes[i], &cd, &distanceCallback);
+		}
+	}
+	else
+		link_manager.manager_->distance(getCollisionObjects()[object_index].get(), &cd, &distanceCallback);
+
 
 //	ros::WallTime flag4 = ros::WallTime::now();
 
@@ -126,6 +163,10 @@ double collision_detection::SafeCollisionWorldFCL::distanceRobot(const Collision
 //		<< "flag4 " << flag4 - start <<  "\n \n";
 //		output_file_.close();
 //	}
+
+	//STa temp
+	std::cout << "res.distance= " << res.distance << "\n";
+	std::cout << "Exit distanceRobot \n";
 
 	return res.distance;
 }
@@ -148,7 +189,7 @@ double collision_detection::SafeCollisionWorldFCL::distanceRobot(const Collision
         result_temp.clear();
         fcl::DistanceRequest request;
         request.enable_nearest_points = true;
-        fcl::distance(getCollisionObjects()[object_index], link_manager.object_.collision_objects_[i].get(), request, result_temp);
+        fcl::distance(getCollisionObjects()[object_index].get(), link_manager.object_.collision_objects_[i].get(), request, result_temp);
 
         if (result_temp.min_distance < result.min_distance)
             result = result_temp;
@@ -196,17 +237,57 @@ double collision_detection::SafeCollisionWorldFCL::distanceRobotHelper(const Col
 }
 
 //STa
-std::vector<fcl::CollisionObject*> collision_detection::SafeCollisionWorldFCL::getCollisionObjects() const
+std::vector<boost::shared_ptr<fcl::CollisionObject> > collision_detection::SafeCollisionWorldFCL::getCollisionObjects() const
 {
-	std::vector<fcl::CollisionObject*> fcl_collision_obj;
-	std::vector<std::string> co_names = getCollisionObjectNames();
-	for (size_t i=0; i < co_names.size(); ++i)
+	std::vector<boost::shared_ptr<fcl::CollisionObject> > fcl_collision_obj;
+	for(std::map<std::string, FCLObject >::const_iterator it = fcl_objs_.begin(); it != fcl_objs_.end(); ++it)
 	{
-		for (size_t j=0; j < fcl_objs_.find(co_names[i])->second.collision_objects_.size(); ++j)
-			fcl_collision_obj.push_back(fcl_objs_.find(co_names[i])->second.collision_objects_[j].get());
+    	for (size_t i=0; i < it->second.collision_objects_.size(); ++i)
+    		fcl_collision_obj.push_back(it->second.collision_objects_[i]);
 	}
-
 	return fcl_collision_obj;
+
+//	std::vector<boost::shared_ptr<fcl::CollisionObject> > fcl_collision_obj;
+//	std::vector<std::string> co_names = getCollisionObjectNames();
+//	for (size_t i=0; i < co_names.size(); ++i)
+//	{
+//		//STa temp
+//		std::cout << "getCollisionObjects " << co_names[i] << "\n";
+//
+//		for (size_t j=0; j < fcl_objs_.find(co_names[i])->second.collision_objects_.size(); ++j)
+//			fcl_collision_obj.push_back(fcl_objs_.find(co_names[i])->second.collision_objects_[j]);
+//
+//		//STa temp
+//		std::cout << "getCollisionObjects OK \n \n";
+//	}
+//
+//	return fcl_collision_obj;
+}
+
+std::vector<boost::shared_ptr<fcl::CollisionObject> > collision_detection::SafeCollisionWorldFCL::getCollisionObjects(std::string co_name) const
+{
+	std::vector<boost::shared_ptr<fcl::CollisionObject> > fcl_collision_obj;
+
+    if(fcl_objs_.find(co_name) != fcl_objs_.end())
+    {
+
+        for (size_t i=0; i < fcl_objs_.find(co_name)->second.collision_objects_.size(); ++i)
+            fcl_collision_obj.push_back(fcl_objs_.find(co_name)->second.collision_objects_[i]);
+    }
+
+    return fcl_collision_obj;
+}
+
+int collision_detection::SafeCollisionWorldFCL::getCollisionObjectIndex(std::string co_name) const
+{
+    size_t index = 0;
+    for(std::map<std::string, FCLObject >::const_iterator it = fcl_objs_.begin(); it != fcl_objs_.end(); ++it)
+    {
+        if (co_name.compare(it->first) == 0)
+            return index;
+        index++;
+    }
+    return -1;
 }
 
 std::vector<std::string> collision_detection::SafeCollisionWorldFCL::getCollisionObjectNames() const

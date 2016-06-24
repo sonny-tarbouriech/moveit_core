@@ -359,6 +359,9 @@ struct FCLShapeCache
 
 bool distanceCallback(fcl::CollisionObject* o1, fcl::CollisionObject* o2, void* data, double& min_dist)
 {
+	//STa temp
+	std::cout << "Enter distanceCallback \n";
+
   CollisionData* cdata = reinterpret_cast<CollisionData*>(data);
 
   const CollisionGeometryData* cd1 = static_cast<const CollisionGeometryData*>(o1->collisionGeometry()->getUserData());

@@ -3,6 +3,10 @@
 
 #include <moveit/collision_detection_fcl/collision_world_fcl.h>
 
+//STa
+#include "fcl/octree.h"
+#include "fcl/collision_object.h"
+
 
 namespace collision_detection
 {
@@ -30,12 +34,15 @@ namespace collision_detection
     virtual double distanceWorld(const CollisionWorld &world, const AllowedCollisionMatrix &acm) const;
 
     //STa
-    std::vector<fcl::CollisionObject*> getCollisionObjects() const;
+    std::vector<boost::shared_ptr<fcl::CollisionObject> > getCollisionObjects() const;
+    std::vector<boost::shared_ptr<fcl::CollisionObject> > getCollisionObjects(std::string co_name) const;
+    int getCollisionObjectIndex(std::string co_name) const;
     std::vector<std::string> getCollisionObjectNames() const;
     void checkRobotCollision(const CollisionRequest &req, CollisionResult &res, const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm, std::vector<std::string> current_link_names, std::size_t object_index) const;
     double distanceRobot(const CollisionRobot* robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm, std::vector<std::string> current_link_names, std::size_t object_index) const;
     double distanceRobot(const CollisionRobot* robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm, std::vector<std::string> current_link_names, std::size_t object_index, fcl::DistanceResult& result) const;
     double distanceRobot(const CollisionRobot &robot, const robot_state::RobotState &state, const AllowedCollisionMatrix &acm, std::string group_name) const;
+    void generateBoxesFromOctomap(std::vector<fcl::CollisionObject*>& boxes, const fcl::OcTree* tree) const;
 
 
   protected:
