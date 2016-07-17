@@ -1,9 +1,6 @@
 #include <moveit/collision_detection_fcl/safe_collision_world_fcl.h>
 #include <moveit/collision_detection_fcl/safe_collision_robot_fcl.h>
 
-//STa temp
-#include <fstream>
-
 collision_detection::SafeCollisionWorldFCL::SafeCollisionWorldFCL() :
 	CollisionWorldFCL()
 {
@@ -111,29 +108,18 @@ void collision_detection::SafeCollisionWorldFCL::generateBoxesFromOctomap(std::v
 double collision_detection::SafeCollisionWorldFCL::distanceRobot(const CollisionRobot* robot, const robot_state::RobotState &state, const AllowedCollisionMatrix *acm,
 		std::vector<std::string> current_link_names, std::size_t object_index) const
 {
-//    //STa test temp
-//    std::string homepath = getenv("HOME");
-//    std::ofstream output_file_((homepath + "/distanceRobot.txt").c_str(), std::ios::out | std::ios::app);
-//	ros::WallTime start = ros::WallTime::now();
-
 	FCLManager link_manager;
 	allocCollisionBroadPhase(link_manager);
 
 	const SafeCollisionRobotFCL* safe_robot_fcl = static_cast<const SafeCollisionRobotFCL*>(robot);
 
-//	ros::WallTime flag1 = ros::WallTime::now();
-
 	safe_robot_fcl->constructFCLObject(state, link_manager.object_, current_link_names);
 	link_manager.object_.registerTo(link_manager.manager_.get());
-
-//	ros::WallTime flag2 = ros::WallTime::now();
 
 	CollisionRequest req;
 	CollisionResult res;
 	CollisionData cd(&req, &res, acm);
 	cd.enableGroup(robot->getRobotModel());
-
-//	ros::WallTime flag3 = ros::WallTime::now();
 
 	boost::shared_ptr<fcl::CollisionObject> co = getCollisionObjects()[object_index];
 
@@ -149,24 +135,6 @@ double collision_detection::SafeCollisionWorldFCL::distanceRobot(const Collision
 	}
 	else
 		link_manager.manager_->distance(getCollisionObjects()[object_index].get(), &cd, &distanceCallback);
-
-
-//	ros::WallTime flag4 = ros::WallTime::now();
-
-
-//	if (output_file_)
-//	{
-//		output_file_
-//		<< "flag1 " << flag1 - start <<  "\n"
-//		<< "flag2 " << flag2 - start <<  "\n"
-//		<< "flag3 " << flag3 - start <<  "\n"
-//		<< "flag4 " << flag4 - start <<  "\n \n";
-//		output_file_.close();
-//	}
-
-	//STa temp
-	std::cout << "res.distance= " << res.distance << "\n";
-	std::cout << "Exit distanceRobot \n";
 
 	return res.distance;
 }
@@ -246,22 +214,6 @@ std::vector<boost::shared_ptr<fcl::CollisionObject> > collision_detection::SafeC
     		fcl_collision_obj.push_back(it->second.collision_objects_[i]);
 	}
 	return fcl_collision_obj;
-
-//	std::vector<boost::shared_ptr<fcl::CollisionObject> > fcl_collision_obj;
-//	std::vector<std::string> co_names = getCollisionObjectNames();
-//	for (size_t i=0; i < co_names.size(); ++i)
-//	{
-//		//STa temp
-//		std::cout << "getCollisionObjects " << co_names[i] << "\n";
-//
-//		for (size_t j=0; j < fcl_objs_.find(co_names[i])->second.collision_objects_.size(); ++j)
-//			fcl_collision_obj.push_back(fcl_objs_.find(co_names[i])->second.collision_objects_[j]);
-//
-//		//STa temp
-//		std::cout << "getCollisionObjects OK \n \n";
-//	}
-//
-//	return fcl_collision_obj;
 }
 
 std::vector<boost::shared_ptr<fcl::CollisionObject> > collision_detection::SafeCollisionWorldFCL::getCollisionObjects(std::string co_name) const

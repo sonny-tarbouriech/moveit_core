@@ -40,9 +40,6 @@
 #include <eigen_conversions/eigen_msg.h>
 #include <boost/bind.hpp>
 
-//STa temp
-#include <fstream>
-
 bool constraint_samplers::JointConstraintSampler::configure(const moveit_msgs::Constraints &constr)
 {
   // construct the constraints
@@ -580,22 +577,6 @@ bool constraint_samplers::IKConstraintSampler::callIK(const geometry_msgs::Pose 
     for (std::size_t i = 0 ; i < ik_joint_bijection.size() ; ++i)
       solution[ik_joint_bijection[i]] = ik_sol[i];
     state.setJointGroupPositions(jmg_, solution);
-
-//    //STa temp
-//    std::string homepath = getenv("HOME");
-//    std::ofstream output_file((homepath + "/default_constraint_sampler.txt").c_str(), std::ios::out | std::ios::app);
-//    output_file << "solution : ";
-//    for (std::size_t i = 0 ; i < solution.size(); ++i)
-//      	output_file << solution[i] << "  ";
-//    output_file << "\n";
-//    output_file << "use_as_seed : " << use_as_seed << "\n";
-//    output_file << "seed : ";
-//    for (std::size_t i = 0 ; i < seed.size(); ++i)
-//      	output_file << seed[i] << "  ";
-//    output_file << "\n \n";
-//    output_file.close();
-
-
     return validate(state);
   }
   else

@@ -64,8 +64,6 @@ collision_detection::SafeCollisionRobotFCL::SafeCollisionRobotFCL(const robot_mo
           else
               g = createCollisionGeometry(links[i]->getShapes()[j], getLinkScale(links[i]->getName()), getLinkPadding(links[i]->getName()), links[i], j);
 
-
-          //      FCLGeometryConstPtr g = createCollisionGeometry(links[i]->getShapes()[j], getLinkScale(links[i]->getName()), getLinkPadding(links[i]->getName()), links[i], j);
           if (g)
           {
               geoms_[links[i]->getFirstCollisionBodyTransformIndex() + j] = g;
